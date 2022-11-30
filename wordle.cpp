@@ -10,7 +10,7 @@ using namespace std;
 
 
 // Add prototypes of helper functions here
-void wordleHelper(string & in, string::size_type left, string remainingFloating, const set<string>& dict, set<string>& ret);
+void wordleHelper(string & in, string::size_type left, string::size_type blanks, string remainingFloating, const set<string>& dict, set<string>& ret);
 
 // Definition of primary wordle function
 std::set<std::string> wordle(
@@ -21,12 +21,16 @@ std::set<std::string> wordle(
     // Add your code here
     string inCopy = in;
     set<string> ret;
-    wordleHelper(inCopy, 0, floating, dict, ret);
+    int blanks = 0;
+    for (char c : in) {
+        if (c == '-') ++blanks;
+    }
+    wordleHelper(inCopy, 0, blanks, floating, dict, ret);
     return ret;
 }
 
 // Define any helper functions here
-void wordleHelper(string & in, string::size_type left, string remainingFloating, const set<string>& dict, set<string>& ret)
+void wordleHelper(string & in, string::size_type left, string::size_type blanks, string remainingFloating, const set<string>& dict, set<string>& ret)
 {
     if (left == in.size())
     {
@@ -38,15 +42,30 @@ void wordleHelper(string & in, string::size_type left, string remainingFloating,
         return;
     }
     if (in[left] != '-') {
-        wordleHelper(in, left+1, remainingFloating, dict, ret);
+        wordleHelper(in, left+1, blanks, remainingFloating, dict, ret);
         return;
     }
-    for(char i = 'a'; i <= 'z'; i++) {
-        in[left] = i;
+
+    // check floating letters first
+    for(int i = remainingFloating.size()-1; i >= 0; i--) {
+        in[left] = remainingFloating[i];
         string newRemainingFloating = remainingFloating;
-        string::size_type index = newRemainingFloating.find(i);
-        if (index != string::npos) newRemainingFloating.erase(index, 1);
-        wordleHelper(in, left+1, newRemainingFloating, dict, ret);
+        newRemainingFloating.erase(i, 1);
+        wordleHelper(in, left+1, blanks-1, newRemainingFloating, dict, ret);
+    }
+
+    if (remainingFloating.size() > blanks-1) {
+        in[left] = '-';
+        return;
+    }
+
+    // then check the rest
+    for(char i = 'a'; i <= 'z'; i++) {
+        string::size_type index = remainingFloating.find(i);
+        if (index == string::npos) { // if it's a floating letter, we've already checked it
+            in[left] = i;
+            wordleHelper(in, left+1, blanks-1, remainingFloating, dict, ret);
+        }
     }
     in[left] = '-';
 }
