@@ -69,7 +69,7 @@ bool schedule(
 
     bool ret = scheduleHelper(avail, dailyNeed, sched, shiftsUsed, scheduledTodayMtrx, 0);
     for (size_t i = 0; i < totalDays; ++i) {
-        delete scheduledTodayMtrx[i];
+        delete [] scheduledTodayMtrx[i];
     }
     return ret;
 }
